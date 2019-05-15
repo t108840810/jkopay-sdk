@@ -3,6 +3,7 @@ import axios from "axios";
 
 // interfaces
 import {JKoPayEntryParams, JKoPayProduct, EntryOptions, Product, EntryResponse} from "./interface/entry.interface";
+import {JKoPayRefundParams, RefundResponse} from "./interface/refund.interface";
 
 export default class JKoPaySDK {
     /**
@@ -71,6 +72,39 @@ export default class JKoPaySDK {
         if (options.escrow !== undefined) requestBody.escrow = options.escrow;
         if (options.products !== undefined)
             requestBody.products = options.products.map(product => this.productFormat(product));
+
+        // 請求街口伺服器
+        const response = await axios({
+            url: `${this.serverUrl}${requestPath}`,
+            method: requestMethod,
+            headers: {
+                "Content-type": "application/json",
+                "API-KEY": this.apiKey,
+                DIGEST: this.digest(JSON.stringify(requestBody))
+            },
+            data: requestBody,
+            timeout: 10000
+        });
+
+        return response.data;
+    }
+
+    /**
+     * 訂單退款API
+     *
+     * 將該筆電商平台交易序號執行退款，可支援部分、多次部分退款，累積退款金額不可超過訂單實際消費金額。
+     * @param platformOrderId 原電商平台端交易序號
+     * @param refundAmount 退款金額
+     *                     - 允許部分、多次部分退款，但該筆訂單加總退款金額不可超過訂單實際消費金額。
+     */
+    public async refund(platformOrderId: string, refundAmount: number): Promise<RefundResponse> {
+        // 請求資料
+        const requestPath = "/platform/refund";
+        const requestMethod = "POST";
+        const requestBody: JKoPayRefundParams = {
+            platform_order_id: platformOrderId,
+            refund_amount: refundAmount
+        };
 
         // 請求街口伺服器
         const response = await axios({
