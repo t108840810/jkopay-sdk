@@ -1,9 +1,11 @@
 import * as crypto from "crypto";
 import axios from "axios";
+import * as qs from "querystring";
 
 // interfaces
 import {JKoPayEntryParams, JKoPayProduct, EntryOptions, Product, EntryResponse} from "./interface/entry.interface";
 import {JKoPayRefundParams, RefundResponse} from "./interface/refund.interface";
+import {InquiryResponse} from "./interface/inquiry.interface";
 
 export default class JKoPaySDK {
     /**
@@ -116,6 +118,37 @@ export default class JKoPaySDK {
                 DIGEST: this.digest(JSON.stringify(requestBody))
             },
             data: requestBody,
+            timeout: 10000
+        });
+
+        return response.data;
+    }
+
+    /**
+     * 訂單查詢API
+     *
+     * 查詢該筆電商平台交易序號的付款、退款歷程。
+     * @param platformOrderIds 電商平台端交易序號
+     *                         - 最多可以查詢 20 筆交易。
+     */
+    public async inquiry(platformOrderIds: string | string[]): Promise<InquiryResponse> {
+        // 請求資料
+        const requestPath = "/platform/inquiry";
+        const requestMethod = "GET";
+        const requestParams = {
+            platform_order_ids: platformOrderIds
+        };
+
+        // 請求街口伺服器
+        const response = await axios({
+            url: `${this.serverUrl}${requestPath}`,
+            method: requestMethod,
+            headers: {
+                "Content-type": "application/json",
+                "API-KEY": this.apiKey,
+                DIGEST: this.digest(qs.stringify(requestParams))
+            },
+            params: requestParams,
             timeout: 10000
         });
 
