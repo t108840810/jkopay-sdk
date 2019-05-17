@@ -1,6 +1,6 @@
 {
     "name": "jkopay-sdk",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "街口支付SDK",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
